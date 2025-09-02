@@ -1,43 +1,73 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform } from 'react-native';
+import { Tabs } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { View, Text } from "react-native";
 
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
-      }}>
+        headerShown: true,
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          backgroundColor: "#fff",
+          borderTopColor: "#ddd",
+          height: 60,
+        },
+        tabBarActiveTintColor: "#2DD4BF", // 민트색
+        tabBarInactiveTintColor: "#999",
+      }}
+    >
+      {/* Grid 탭 */}
       <Tabs.Screen
-        name="index"
+        name="grid"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          headerTitle: "오늘의 패션은 무엇",
+          headerTitleAlign: "center",
+          headerLeft: () => (
+            <View style={{ marginLeft: 15 }}>
+              <Ionicons name="menu-outline" size={24} color="#000" />
+            </View>
+          ),
+          headerRight: () => (
+            <View
+              style={{
+                marginRight: 15,
+                padding: 6,
+                borderWidth: 2,
+                borderColor: "#000",
+                borderRadius: 6,
+              }}
+            >
+              <Ionicons name="add" size={20} color="#000" />
+            </View>
+          ),
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="grid-outline" color={color} size={size} />
+          ),
         }}
       />
+
+      {/* Chat 탭 */}
       <Tabs.Screen
-        name="explore"
+        name="chat"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          headerTitle: "채팅",
+          headerTitleAlign: "center",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="chatbubble-outline" color={color} size={size} />
+          ),
+        }}
+      />
+
+      {/* Profile 탭 */}
+      <Tabs.Screen
+        name="profile"
+        options={{
+          headerTitle: "내 프로필",
+          headerTitleAlign: "center",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person-circle-outline" color={color} size={size} />
+          ),
         }}
       />
     </Tabs>
