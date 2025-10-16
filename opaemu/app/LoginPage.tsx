@@ -3,20 +3,22 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
+// ⭐️ 1. Firebase 관련 함수와 설정 파일을 가져옵니다.
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebaseConfig';
 import {
-  Alert,
-  Image,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Image,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
-// 이미지 경로는 프로젝트 루트에 있는 'img' 폴더 기준으로 설정했습니다.
-// 실제 경로에 맞게 수정해주세요.
+// 이미지 경로는 실제 프로젝트 구조에 맞게 설정해야 합니다.
 const FacebookIcon = require('../img/Facebook.png');
 const InstagramIcon = require('../img/Instagram.png');
 const KakaoIcon = require('../img/kakaotalk.png');
@@ -27,12 +29,28 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const router = useRouter();
 
-  const handleLogin = () => {
-    if (email && password) {
-      // 로그인 후 뒤로가기 시 다시 로그인 화면으로 오지 않도록 replace 사용
-      router.replace('/chat');
+  // ⭐️ 2. handleLogin 함수를 Firebase 로그인 로직으로 수정합니다.
+  const handleLogin = async () => { // async 함수로 변경
+    if (email.trim() && password.trim()) {
+      try {
+        // Firebase에 이메일과 비밀번호로 로그인을 요청합니다.
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        console.log('로그인 성공!', userCredential.user.email);
+        
+        // 로그인 성공 시 채팅 페이지로 이동합니다.
+        router.replace('/chat');
+
+      } catch (error: any) {
+        console.error('로그인 오류:', error.code);
+        // Firebase 에러 코드에 따라 사용자에게 적절한 메시지를 보여줍니다.
+        if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+            Alert.alert('로그인 실패', '이메일 또는 비밀번호가 올바르지 않습니다.');
+        } else {
+            Alert.alert('로그인 실패', '로그인 중 문제가 발생했습니다.');
+        }
+      }
     } else {
-      Alert.alert("오류", "아이디와 비밀번호를 입력해주세요.");
+      Alert.alert("입력 오류", "이메일과 비밀번호를 모두 입력해주세요.");
     }
   };
 
@@ -48,8 +66,23 @@ export default function LoginPage() {
       </View>
 
       <View style={styles.content}>
-        <TextInput style={styles.input} placeholder="아이디 (이메일)" placeholderTextColor="#8e8e8e" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-        <TextInput style={styles.input} placeholder="비밀번호" placeholderTextColor="#8e8e8e" secureTextEntry value={password} onChangeText={setPassword} />
+        <TextInput 
+          style={styles.input} 
+          placeholder="아이디 (이메일)" 
+          placeholderTextColor="#8e8e8e" 
+          value={email} 
+          onChangeText={setEmail} 
+          keyboardType="email-address" 
+          autoCapitalize="none" 
+        />
+        <TextInput 
+          style={styles.input} 
+          placeholder="비밀번호" 
+          placeholderTextColor="#8e8e8e" 
+          secureTextEntry 
+          value={password} 
+          onChangeText={setPassword} 
+        />
         
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
           <Text style={styles.loginButtonText}>로그인</Text>
