@@ -5,7 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 // ⭐️ 1. Firebase 관련 함수와 설정 파일을 가져옵니다.
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebaseConfig'; 
+import { auth } from '../../firebaseConfig'; 
 import {
     Alert,
     KeyboardAvoidingView,

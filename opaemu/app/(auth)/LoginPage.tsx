@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 // ⭐️ 1. Firebase 관련 함수와 설정 파일을 가져옵니다.
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebaseConfig';
+import { auth } from '../../firebaseConfig';
 import {
     Alert,
     Image,
@@ -19,10 +19,10 @@ import {
 } from 'react-native';
 
 // 이미지 경로는 실제 프로젝트 구조에 맞게 설정해야 합니다.
-const FacebookIcon = require('../img/Facebook.png');
-const InstagramIcon = require('../img/Instagram.png');
-const KakaoIcon = require('../img/kakaotalk.png');
-const NaverBandIcon = require('../img/Naver BAND.png');
+const FacebookIcon = require('../../img/Facebook.png');
+const InstagramIcon = require('../../img/Instagram.png');
+const KakaoIcon = require('../../img/kakaotalk.png');
+const NaverBandIcon = require('../../img/Naver BAND.png');
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
