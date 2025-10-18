@@ -1,12 +1,13 @@
+// app/MyProfilePage.tsx
 
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { User, onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
+import { User, onAuthStateChanged, sendPasswordResetEmail, signOut, updateProfile } from 'firebase/auth';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import React, { useEffect, useState } from 'react';
 import { Alert, Image, SafeAreaView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { auth, storage } from '../firebaseConfig'; // ⭐️ storage를 추가로 가져옵니다.
+import { auth, storage } from '../firebaseConfig';
 
 // 메뉴 아이템을 위한 컴포넌트
 const MenuItem = ({ icon, title, onPress }: { icon: any; title: string; onPress?: () => void }) => (
@@ -20,9 +21,8 @@ const MenuItem = ({ icon, title, onPress }: { icon: any; title: string; onPress?
 export default function MyProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(auth.currentUser);
-  const [isUploading, setIsUploading] = useState(false); // 업로드 상태 관리
+  const [isUploading, setIsUploading] = useState(false);
 
-  // 로그인 상태 감지
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -30,7 +30,6 @@ export default function MyProfilePage() {
     return () => unsubscribe();
   }, []);
 
-  // 로그아웃 기능
   const handleLogout = () => {
     Alert.alert("로그아웃", "정말 로그아웃 하시겠습니까?", [
       { text: "취소", style: "cancel" },
@@ -42,7 +41,21 @@ export default function MyProfilePage() {
     ]);
   };
 
-  // 이미지 선택 및 업로드 기능
+  const handlePasswordReset = async () => {
+    if (!user || !user.email) {
+        Alert.alert("오류", "사용자 정보가 없습니다.");
+        return;
+    }
+    try {
+        await sendPasswordResetEmail(auth, user.email);
+        Alert.alert("전송 완료", "비밀번호 재설정 이메일을 보냈습니다. 이메일 함을 확인해주세요.");
+    } catch (error) {
+        console.error("비밀번호 재설정 이메일 발송 오류:", error);
+        Alert.alert("오류", "요청을 처리하는 중 문제가 발생했습니다.");
+    }
+  };
+
+  // ⭐️ 프로필 사진 선택 및 업로드 기능 함수
   const pickAndUploadImage = async () => {
     // 1. 미디어 라이브러리 접근 권한 확인
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -55,7 +68,7 @@ export default function MyProfilePage() {
     const pickerResult = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [1, 1], // 1:1 비율로 편집
+      aspect: [1, 1],
       quality: 0.7,
     });
 
@@ -65,7 +78,7 @@ export default function MyProfilePage() {
     try {
       const imageUri = pickerResult.assets[0].uri;
       const response = await fetch(imageUri);
-      const blob = await response.blob(); // 이미지를 blob 형태로 변환
+      const blob = await response.blob();
 
       // 3. Firebase Storage에 업로드
       const storageRef = ref(storage, `profile_pictures/${user.uid}`);
@@ -74,8 +87,11 @@ export default function MyProfilePage() {
       // 4. 업로드된 이미지의 URL 다운로드
       const downloadURL = await getDownloadURL(storageRef);
 
-      // 5. Firebase Auth 프로필 업데이트
+      // 5. Firebase Auth 프로필 업데이트 (사진 URL 저장)
       await updateProfile(user, { photoURL: downloadURL });
+      
+      // 상태를 강제로 업데이트하여 화면에 바로 반영되도록 함
+      setUser({ ...user }); 
 
       Alert.alert("성공", "프로필 사진이 변경되었습니다.");
       
@@ -90,7 +106,6 @@ export default function MyProfilePage() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      {/* 헤더 */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="black" />
@@ -100,7 +115,6 @@ export default function MyProfilePage() {
       </View>
 
       <View style={styles.content}>
-        {/* 프로필 섹션 */}
         <View style={styles.profileSection}>
           <TouchableOpacity onPress={pickAndUploadImage} disabled={isUploading}>
             {user?.photoURL ? (
@@ -118,9 +132,8 @@ export default function MyProfilePage() {
           {isUploading && <Text style={styles.uploadingText}>사진 업로드 중...</Text>}
         </View>
 
-        {/* 메뉴 섹션 */}
         <View style={styles.menuSection}>
-          <MenuItem icon="lock-closed-outline" title="비밀번호 변경" onPress={() => Alert.alert("알림", "비밀번호 변경 기능은 준비 중입니다.")} />
+          <MenuItem icon="lock-closed-outline" title="비밀번호 변경" onPress={handlePasswordReset} />
           <MenuItem icon="exit-outline" title="로그아웃" onPress={handleLogout} />
         </View>
       </View>

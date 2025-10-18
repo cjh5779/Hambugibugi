@@ -10,6 +10,7 @@ export default function AuthLayout() {
       <Stack.Screen name="SignupAgreePage" />
       <Stack.Screen name="SignupEmailPage" /> 
       <Stack.Screen name="SignupPasswordPage" />
+      <Stack.Screen name="ForgotPasswordPage" />
     </Stack>
   );
 }
