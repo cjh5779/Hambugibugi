@@ -3,13 +3,24 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { 
+  // 🚨 react-native의 SafeAreaView는 여기서 제거합니다.
+  StyleSheet, 
+  Text, 
+  TouchableOpacity, 
+  View 
+} from 'react-native';
+// ⭐️ Expo/Android 호환성을 위해 다음 컴포넌트들을 import합니다.
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 
 export default function WelcomePage() {
   const router = useRouter();
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* ⭐️ Expo의 StatusBar를 추가하고 style="dark"로 설정합니다. */}
+      <StatusBar style="dark" />
       <View style={styles.content}>
         {/* TODO: 나중에 여기에 로고나 예쁜 일러스트 이미지를 추가하면 좋습니다. */}
         <View style={styles.titleContainer}>

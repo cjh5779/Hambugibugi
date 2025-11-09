@@ -1,4 +1,4 @@
-// app/SignupPasswordPage.tsx
+// app/(auth)/SignupPasswordPage.tsx
 
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -7,17 +7,19 @@ import React, { useMemo, useState } from 'react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../firebaseConfig'; 
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  // 🚨 react-native의 SafeAreaView와 StatusBar는 여기서 제거합니다.
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
+// ⭐️ Expo/Android 호환성을 위해 다음 컴포넌트들을 import합니다.
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 
 // 유효성 검사 항목을 표시하는 작은 컴포넌트
 const ValidationCheck = ({ isValid, text }: { isValid: boolean; text: string }) => (
@@ -70,7 +72,7 @@ export default function SignupPasswordPage() {
       Alert.alert(
         '회원가입 완료',
         `${userEmail} 계정으로 회원가입이 완료되었습니다.`,
-        [{ text: '로그인 화면으로', onPress: () => router.replace('/LoginPage') }]
+        [{ text: '로그인 화면으로', onPress: () => router.replace('/(auth)/LoginPage') }]
       );
 
     } catch (error: any) {
@@ -90,7 +92,8 @@ export default function SignupPasswordPage() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      {/* ⭐️ Expo의 StatusBar로 교체하고 style="dark"로 설정합니다. */}
+      <StatusBar style="dark" />
       <KeyboardAvoidingView 
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.container}
