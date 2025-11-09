@@ -5,6 +5,9 @@ import React, { useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 import BootScreen from "../components/BootScreen";
+// ⭐️ SafeAreaProvider와 StatusBar를 import 합니다.
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 
 function RootLayoutNav() {
   const router = useRouter();
@@ -51,5 +54,12 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
-  return <RootLayoutNav />;
+  return (
+    // ⭐️ SafeAreaProvider로 전체 앱을 감싸 안전 영역 context를 제공합니다.
+    <SafeAreaProvider>
+      {/* ⭐️ 상단바 스타일을 설정합니다. (선택 사항이지만 권장) */}
+      <StatusBar style="dark" /> 
+      <RootLayoutNav />
+    </SafeAreaProvider>
+  );
 }

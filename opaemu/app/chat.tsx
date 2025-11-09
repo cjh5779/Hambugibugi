@@ -8,15 +8,17 @@ import { User, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 import {
   Alert,
-  Image, KeyboardAvoidingView, Platform, SafeAreaView,
+  Image, KeyboardAvoidingView, Platform,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+
+import { SafeAreaView } from 'react-native-safe-area-context'; 
+import { StatusBar } from 'expo-status-bar'; 
 
 interface Message {
   id: number;
@@ -45,11 +47,7 @@ export default function ChatMain() {
 
   const goToLogin = () => { router.push('/(auth)/LoginPage'); };
   const goToMyProfile = () => { router.push('/MyProfilePage'); };
-  
-  // 설정 페이지로 이동하는 함수
-  const goToSettings = () => {
-    router.push('/SettingsPage');
-  };
+  const goToSettings = () => { router.push('/SettingsPage'); };
 
   const sendMessage = () => {
     if (input.trim() === "") return;
@@ -73,10 +71,7 @@ export default function ChatMain() {
 
   const launchCamera = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permissionResult.granted) {
-      alert("카메라 권한이 필요합니다!");
-      return;
-    }
+    if (!permissionResult.granted) { alert("카메라 권한이 필요합니다!"); return; }
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, quality: 1,
     });
@@ -89,10 +84,7 @@ export default function ChatMain() {
 
   const launchGallery = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      alert("사진첩 접근 권한이 필요합니다!");
-      return;
-    }
+    if (!permissionResult.granted) { alert("사진첩 접근 권한이 필요합니다!"); return; }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, quality: 1,
     });
@@ -105,7 +97,8 @@ export default function ChatMain() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar style="dark" />
+      
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           {user ? (
@@ -136,25 +129,45 @@ export default function ChatMain() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView ref={scrollViewRef} style={styles.scroll} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
-        {messages.map((message) => (
-          <View key={message.id} style={[styles.messageContainer, message.isUser ? styles.aiMessage : styles.userMessage]}>
-            {message.imageUri ? <Image source={{ uri: message.imageUri }} style={styles.imageMessage} /> : null}
-            <Text style={styles.messageText}>{message.text}</Text>
-          </View>
-        ))}
-      </ScrollView>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"} 
+        style={styles.chatContainer} 
+      >
+        <ScrollView 
+          ref={scrollViewRef} 
+          style={styles.scroll} 
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }} 
+          showsVerticalScrollIndicator={false}
+        >
+          {messages.map((message) => (
+            <View key={message.id} style={[styles.messageContainer, message.isUser ? styles.aiMessage : styles.userMessage]}>
+              {message.imageUri ? <Image source={{ uri: message.imageUri }} style={styles.imageMessage} /> : null}
+              <Text style={styles.messageText}>{message.text}</Text>
+            </View>
+          ))}
+        </ScrollView>
 
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={Platform.select({ ios: 8, android: 0 })}>
         <View style={styles.inputBar}>
           <TouchableOpacity style={styles.plusBtn} onPress={handleImagePick}>
             <Ionicons name="camera-outline" size={24} color="#000" />
           </TouchableOpacity>
-          <TextInput value={input} onChangeText={setInput} placeholder="오늘의 코디는 무엇인가요?" placeholderTextColor="#8E8E93" style={styles.input} />
+          
+          {/* ⭐️ 1. TextInput에 multiline 속성을 추가합니다. */}
+          <TextInput 
+            value={input} 
+            onChangeText={setInput} 
+            placeholder="오늘의 코디는 무엇인가요?" 
+            placeholderTextColor="#8E8E93" 
+            style={styles.input} 
+            multiline // 여러 줄 입력을 활성화
+            numberOfLines={1} // (초기 라인 수, 선택 사항)
+          />
+          
           <TouchableOpacity style={styles.plusBtn} onPress={sendMessage}>
             <Ionicons name="send" size={24} color="#000" />
           </TouchableOpacity>
         </View>
+        
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -162,6 +175,7 @@ export default function ChatMain() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#fff" },
+  chatContainer: { flex: 1 }, 
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 12, paddingTop: 4, paddingBottom: 6 },
   headerLeft: { width: 36, alignItems: "flex-start", justifyContent: "center" },
   settingsBtn: { width: 36, alignItems: "flex-end" },
@@ -179,6 +193,20 @@ const styles = StyleSheet.create({
   messageText: { fontSize: 16, color: "#333" },
   imageMessage: { width: 150, height: 150, borderRadius: 12, marginBottom: 8 },
   inputBar: { flexDirection: "row", alignItems: "center", borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "#D1D1D6", paddingHorizontal: 12, paddingVertical: 8, backgroundColor: "#fff" },
-  input: { flex: 1, height: 42, borderRadius: 21, backgroundColor: '#f0f0f0', paddingHorizontal: 16, marginHorizontal: 8 },
+  
+  // ⭐️ 2. input 스타일을 수정합니다.
+  input: { 
+    flex: 1, 
+    // height: 42, // (고정 높이 제거)
+    minHeight: 42, // 최소 높이 설정 (기존 높이 유지)
+    maxHeight: 120, // 최대 높이 설정 (약 5~6줄 분량)
+    borderRadius: 21, 
+    backgroundColor: '#f0f0f0', 
+    paddingHorizontal: 16, 
+    paddingVertical: 10, // ⭐️ 여러 줄 입력을 위해 세로 패딩 추가
+    marginHorizontal: 8,
+    fontSize: 16, // (글꼴 크기 명시 권장)
+  },
+  
   plusBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
 });

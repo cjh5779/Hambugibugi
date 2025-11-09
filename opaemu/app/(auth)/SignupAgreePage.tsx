@@ -3,7 +3,18 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { 
+  Alert, 
+  // 🚨 react-native의 SafeAreaView는 여기서 제거합니다.
+  ScrollView, 
+  StyleSheet, 
+  Text, 
+  TouchableOpacity, 
+  View 
+} from 'react-native';
+// ⭐️ Expo/Android 호환성을 위해 다음 컴포넌트들을 import합니다.
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 
 export default function SignupAgreePage() {
   const router = useRouter();
@@ -48,6 +59,8 @@ export default function SignupAgreePage() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* ⭐️ Expo의 StatusBar를 추가하고 style="dark"로 설정합니다. */}
+      <StatusBar style="dark" />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="black" />

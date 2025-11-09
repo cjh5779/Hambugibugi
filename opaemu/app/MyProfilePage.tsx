@@ -6,7 +6,18 @@ import { useRouter } from 'expo-router';
 import { User, onAuthStateChanged, sendPasswordResetEmail, signOut, updateProfile } from 'firebase/auth';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import React, { useEffect, useState } from 'react';
-import { Alert, Image, SafeAreaView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { 
+  Alert, 
+  Image, 
+  // 🚨 react-native의 SafeAreaView와 StatusBar는 여기서 제거합니다.
+  StyleSheet, 
+  Text, 
+  TouchableOpacity, 
+  View 
+} from 'react-native';
+// ⭐️ Expo/Android 호환성을 위해 다음 컴포넌트들을 import합니다.
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { auth, storage } from '../firebaseConfig';
 
 // 메뉴 아이템을 위한 컴포넌트
@@ -105,7 +116,8 @@ export default function MyProfilePage() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      {/* ⭐️ Expo의 StatusBar로 교체하고 style="dark"로 설정합니다. */}
+      <StatusBar style="dark" />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="black" />
