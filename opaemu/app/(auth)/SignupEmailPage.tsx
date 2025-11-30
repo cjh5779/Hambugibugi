@@ -5,14 +5,12 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Alert,
-  // 🚨 react-native의 SafeAreaView와 StatusBar는 여기서 제거합니다.
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
-// ⭐️ Expo/Android 호환성을 위해 다음 컴포넌트들을 import합니다.
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
@@ -21,48 +19,66 @@ export default function SignupEmailPage() {
   const [email, setEmail] = useState('');
 
   const handleNext = () => {
-    // 간단한 이메일 형식 검사
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       Alert.alert('알림', '올바른 이메일 주소를 입력해주세요.');
       return;
     }
-    
-    // 다음 페이지(비밀번호 입력)로 이메일 정보를 전달합니다.
+
     router.push({
       pathname: '/(auth)/SignupPasswordPage',
-      params: { email: email }
+      params: { email: email },
     });
   };
 
+  const isFilled = email.trim().length > 0;
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* ⭐️ Expo의 StatusBar로 교체하고 style="dark"로 설정합니다. */}
       <StatusBar style="dark" />
+
+      {/* 헤더 */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="black" />
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
+          <Ionicons name="arrow-back" size={24} color="#8C5A3A" />
         </TouchableOpacity>
+        <Text style={styles.headerTitle}>회원가입</Text>
+        <View style={styles.backButton} />
       </View>
 
+      {/* 내용 영역 */}
       <View style={styles.content}>
         <Text style={styles.title}>
-          로그인에 사용할 {"\n"}이메일 주소를 입력해주세요.
+          로그인에 사용할{'\n'}이메일 주소를 입력해주세요.
         </Text>
-        <TextInput
-          style={styles.input}
-          placeholder="이메일 주소 입력"
-          placeholderTextColor="#A0A0A0"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoComplete="email"
-        />
+
+        <View style={styles.card}>
+          <Text style={styles.label}>이메일 주소</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="example@email.com"
+            placeholderTextColor="#C0A394"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+          />
+        </View>
+      </View>
+
+      {/* 하단 버튼 */}
+      <View style={styles.footer}>
         <TouchableOpacity
-          style={[styles.nextButton, { backgroundColor: email.trim() ? '#000' : '#E0E0E0' }]}
+          style={[
+            styles.nextButton,
+            { backgroundColor: isFilled ? '#8C5A3A' : '#E3CABA' },
+          ]}
           onPress={handleNext}
-          disabled={!email.trim()}
+          disabled={!isFilled}
         >
           <Text style={styles.nextButtonText}>다음</Text>
         </TouchableOpacity>
@@ -71,20 +87,95 @@ export default function SignupEmailPage() {
   );
 }
 
-// ⭐️ 스타일은 기존 SignupIdPage와 거의 동일합니다.
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  // 전체 배경
+  container: {
+    flex: 1,
+    backgroundColor: '#FFF7F1',
+  },
+
+  // 헤더
   header: {
-    flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12,
-    borderBottomWidth: 1, borderBottomColor: '#f0f0f0', marginBottom: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFF7F1',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#F6D6C4',
   },
-  backButton: { width: 24 },
-  content: { flex: 1, paddingHorizontal: 20 },
-  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 30, lineHeight: 28 },
+  backButton: {
+    width: 24,
+  },
+  headerTitle: {
+    fontSize: 19,
+    color: '#5B3B2A',
+    fontFamily: 'HiMelody', // 포인트
+  },
+
+  // 내용 영역
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+  },
+  title: {
+    fontSize: 18,
+    color: '#5B3B2A',
+    lineHeight: 26,
+    marginBottom: 16,
+    fontFamily: 'HiMelody', // 타이틀 포인트
+  },
+
+  // 카드
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingHorizontal: 18,
+    paddingVertical: 18,
+    borderWidth: 1,
+    borderColor: '#F6D6C4',
+    shadowColor: '#E2B79C',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  label: {
+    fontSize: 14,
+    color: '#8C5A3A',
+    marginBottom: 8,
+    // 시스템 폰트
+  },
   input: {
-    height: 50, borderColor: '#e0e0e0', borderWidth: 1, borderRadius: 8,
-    paddingHorizontal: 15, fontSize: 16, backgroundColor: '#f7f7f7', marginBottom: 20,
+    height: 46,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#F0D7C3',
+    backgroundColor: '#FFF7F1',
+    paddingHorizontal: 12,
+    fontSize: 15,
+    color: '#5B3B2A',
+    // 시스템 폰트
   },
-  nextButton: { height: 50, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
-  nextButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+
+  // 하단 버튼 영역
+  footer: {
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#F6D6C4',
+    backgroundColor: '#FFF7F1',
+  },
+  nextButton: {
+    height: 50,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  nextButtonText: {
+    color: '#FFF7F1',
+    fontSize: 16,
+  },
 });

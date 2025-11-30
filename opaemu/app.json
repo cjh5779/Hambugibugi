@@ -4,7 +4,7 @@
     "slug": "opaemu",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/opaemu-icon.png",
     "scheme": "opaemu",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -17,11 +17,17 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/opaemu-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.cjh5779.opaemu"
+      "package": "com.cjh5779.opaemu",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "INTERNET"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -39,7 +45,23 @@
           "backgroundColor": "#E5E5E5"
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-web-browser",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "패션 분석을 위해 갤러리 접근 권한이 필요합니다.",
+          "cameraPermission": "패션 분석을 위해 카메라 접근 권한이 필요합니다."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
