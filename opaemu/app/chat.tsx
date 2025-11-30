@@ -16,6 +16,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -94,7 +95,7 @@ function buildAiReply(aiResult: any): string {
   return replyText;
 }
 
-/** 백엔드 history 응답 → Message[] 로 변환 (이미지 + AI 답변 둘 다 생성) */
+/** 백엔드 history 응답 → Message[] 로 변환 */
 function normalizeHistory(raw: any, uid: string): Message[] {
   const list = Array.isArray(raw?.messages)
     ? raw.messages
@@ -132,17 +133,54 @@ function normalizeHistory(raw: any, uid: string): Message[] {
       });
     }
 
-    // 2) 같은 레코드에 ai_result 있으면 → AI 말풍선 하나 더 추가
+    // 2) 같은 레코드에 ai_result 있으면 → AI 말풍선들 추가
     if (m.ai_result) {
       const replyText = buildAiReply(m.ai_result);
+
+      // (1) 점수/요약/제안 말풍선
       result.push({
         id: `${baseId}-ai`,
         text: replyText,
-        isUser: false, // AI는 항상 왼쪽
+        isUser: false, // AI는 왼쪽
         imageUrl: undefined,
         sender: "assistant",
         created_at: m.created_at,
       });
+
+      // (2) “이제 다른 코디 이미지를 만들어 볼게요” 안내 멘트
+      result.push({
+        id: `${baseId}-ai-followup`,
+        text:
+          "👗 지금 코디를 바탕으로, AI가 다른 옷을 입힌 예시 코디 이미지를 만들어 볼게요.",
+        isUser: false,
+        imageUrl: undefined,
+        sender: "assistant",
+        created_at: m.created_at,
+      });
+
+      // (3) edited_image_url 이 있으면 → 새 코디 이미지 말풍선(이미지만)
+      const editedUrl =
+        m.edited_image_url || m.ai_result.edited_image_url || null;
+
+      if (editedUrl) {
+        result.push({
+          id: `${baseId}-ai-edited-image`,
+          text: "",
+          isUser: false, // AI가 보낸 거니까 왼쪽
+          imageUrl: editedUrl, // Firestorage/S3 주소
+          sender: "assistant",
+          created_at: m.created_at,
+        });
+
+        result.push({
+          id: `${baseId}-ai-edited-caption`,
+          text: "이런 코디는 어때요? 오늘 분위기에 맞게 한 벌 골라봤어요 😊",
+          isUser: false,
+          imageUrl: undefined,
+          sender: "assistant",
+          created_at: m.created_at,
+        });
+      }
     }
   });
 
@@ -156,6 +194,7 @@ export default function ChatMain() {
   const [messages, setMessages] = useState<Message[]>([]);
   const scrollViewRef = useRef<ScrollView>(null);
   const [isThinking, setIsThinking] = useState(false); // 로딩 오버레이 표시용
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   // 로그인 유저 구독
   useEffect(() => {
@@ -428,12 +467,17 @@ export default function ChatMain() {
         <ScrollView
           ref={scrollViewRef}
           style={styles.scroll}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingBottom: 12,
+          }}
           showsVerticalScrollIndicator={false}
         >
           {messages.map((message) => {
             const imgSource = message.imageUri || message.imageUrl;
             const isImageOnly = !!imgSource && !message.text;
+            const isEditedImage = message.id.endsWith("-ai-edited-image");
+            const isEditedCaption = message.id.endsWith("-ai-edited-caption");
 
             // ✅ 이미지만 있는 메시지: 말풍선 없이 이미지만
             if (isImageOnly) {
@@ -452,24 +496,31 @@ export default function ChatMain() {
               return (
                 <View
                   key={message.id}
-                  style={
+                  style={[
                     message.isUser
                       ? styles.imageOnlyRight
-                      : styles.imageOnlyLeft
-                  }
+                      : styles.imageOnlyLeft,
+                    isEditedImage && styles.editedImageWrapper,
+                  ]}
                 >
-                  <Image
-                    source={{ uri: imgSource! }}
-                    style={[styles.imageOnlyImage, { width, height }]}
-                    resizeMode="contain"
-                    onError={(e) => {
-                      console.log(
-                        "❌ image load error:",
-                        imgSource,
-                        e.nativeEvent
-                      );
-                    }}
-                  />
+                  {/* ✅ 눌렀을 때 전체 화면으로 띄우기 */}
+                  <TouchableOpacity
+                    activeOpacity={0.9}
+                    onPress={() => setPreviewImage(imgSource!)}
+                  >
+                    <Image
+                      source={{ uri: imgSource! }}
+                      style={[styles.imageOnlyImage, { width, height }]}
+                      resizeMode="contain"
+                      onError={(e) => {
+                        console.log(
+                          "❌ image load error:",
+                          imgSource,
+                          e.nativeEvent
+                        );
+                      }}
+                    />
+                  </TouchableOpacity>
                 </View>
               );
             }
@@ -481,21 +532,27 @@ export default function ChatMain() {
                 style={[
                   styles.messageContainer,
                   message.isUser ? styles.aiMessage : styles.userMessage,
+                  isEditedCaption && styles.editedCaption,
                 ]}
               >
                 {imgSource && (
-                  <Image
-                    source={{ uri: imgSource }}
-                    style={styles.imageMessage}
-                    resizeMode="contain"
-                    onError={(e) =>
-                      console.log(
-                        "❌ image load error:",
-                        imgSource,
-                        e.nativeEvent
-                      )
-                    }
-                  />
+                  <TouchableOpacity
+                    activeOpacity={0.9}
+                    onPress={() => setPreviewImage(imgSource)}
+                  >
+                    <Image
+                      source={{ uri: imgSource }}
+                      style={styles.imageMessage}
+                      resizeMode="contain"
+                      onError={(e) =>
+                        console.log(
+                          "❌ image load error:",
+                          imgSource,
+                          e.nativeEvent
+                        )
+                      }
+                    />
+                  </TouchableOpacity>
                 )}
                 {!!message.text && (
                   <Text style={styles.messageText}>{message.text}</Text>
@@ -539,6 +596,28 @@ export default function ChatMain() {
           <Text style={styles.loadingText}>코디를 분석하는 중이에요...</Text>
         </View>
       )}
+
+      {/* ✅ 이미지 전체 화면 프리뷰 */}
+      <Modal
+        visible={!!previewImage}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPreviewImage(null)}
+      >
+        <TouchableOpacity
+          style={styles.previewOverlay}
+          activeOpacity={1}
+          onPress={() => setPreviewImage(null)} // 아무 데나 탭하면 닫힘
+        >
+          {previewImage && (
+            <Image
+              source={{ uri: previewImage }}
+              style={styles.previewImage}
+              resizeMode="contain"
+            />
+          )}
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -633,6 +712,14 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
 
+  // edited 이미지와 캡션 간 간격 조절용
+  editedImageWrapper: {
+    marginBottom: 0, // 기본 6 → 2
+  },
+  editedCaption: {
+    marginTop: 0, // 기본 marginVertical 6에서 위쪽만 2로
+  },
+
   messageText: {
     fontSize: 16,
     color: "#5B3B2A",
@@ -693,5 +780,18 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     color: "#FFF7F1",
+  },
+
+  // 전체 화면 이미지 프리뷰
+  previewOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.9)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  previewImage: {
+    width: "90%",
+    height: "80%",
+    borderRadius: 20,
   },
 });
