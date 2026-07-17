@@ -50,7 +50,7 @@ Figma를 활용하여 설계한 앱의 핵심 화면 이동 흐름입니다. 각
 
 | 메인 (시작 화면) | 로그인 화면 | AI 분석 로딩 화면 | AI 분석 및 추천 결과 |
 | :---: | :---: | :---: | :---: |
-| <img src="메인.jpg" width="200" /> | <img src="로그인.jpg" width="200" /> | <img src="로딩.jpg" width="200" /> | <img src="AI 분석.jpg" width="200" /> |
+| <img src="메인.png" width="200" height="500" /> | <img src="로그인.png" width="200" height="500" /> | <img src="로딩.jpg" width="200" height="500" /> | <img src="AI 분석.png" width="200" height="500" /> |
 
 * **주요 기능**
   * **전신 코디 업로드:** 디바이스 갤러리 및 카메라 접근을 통한 직관적인 사진 업로드
